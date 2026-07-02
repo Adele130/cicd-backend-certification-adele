@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-adele')        
-DOCKER_IMAGE = "adele1304/tasklist-backend"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-adele')
+        DOCKER_IMAGE = "adele1304/tasklist-backend"
         SONAR_TOKEN = credentials('sonarqube-token')
     }
 
@@ -16,13 +16,13 @@ DOCKER_IMAGE = "adele1304/tasklist-backend"
 
         stage('Install Dependencies') {
             steps {
-                bat 'npm ci'
+                sh 'npm ci'
             }
         }
 
         stage('Unit Tests') {
             steps {
-                bat 'npm run test:coverage'
+                sh 'npm run test:coverage'
             }
             post {
                 always {
@@ -34,32 +34,32 @@ DOCKER_IMAGE = "adele1304/tasklist-backend"
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    bat 'npx sonar-scanner -Dsonar.login=%SONAR_TOKEN%'
+                    sh 'npx sonar-scanner -Dsonar.login=$SONAR_TOKEN'
                 }
             }
         }
 
         stage('Build') {
             steps {
-                bat 'npm run build'
+                sh 'npm run build'
             }
         }
 
         stage('Docker Build') {
             steps {
-                bat "docker build -t %DOCKER_IMAGE%:%BUILD_NUMBER% -t %DOCKER_IMAGE%:latest ."
+                sh "docker build -t $DOCKER_IMAGE:$BUILD_NUMBER -t $DOCKER_IMAGE:latest ."
             }
         }
 
         stage('Trivy Scan') {
             steps {
-                bat "trivy image --exit-code 0 --severity HIGH,CRITICAL %DOCKER_IMAGE%:latest"
+                sh "trivy image --exit-code 0 --severity HIGH,CRITICAL $DOCKER_IMAGE:latest"
             }
         }
 
         stage('SBOM Generation') {
             steps {
-                bat "trivy image --format spdx-json -o sbom-spdx.json %DOCKER_IMAGE%:latest"
+                sh "trivy image --format spdx-json -o sbom-spdx.json $DOCKER_IMAGE:latest"
             }
             post {
                 always {
@@ -70,9 +70,9 @@ DOCKER_IMAGE = "adele1304/tasklist-backend"
 
         stage('Docker Push') {
             steps {
-                bat "echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin"
-                bat "docker push %DOCKER_IMAGE%:%BUILD_NUMBER%"
-                bat "docker push %DOCKER_IMAGE%:latest"
+                sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
+                sh "docker push $DOCKER_IMAGE:$BUILD_NUMBER"
+                sh "docker push $DOCKER_IMAGE:latest"
             }
         }
     }
