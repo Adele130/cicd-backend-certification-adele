@@ -4,7 +4,6 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-adele')
         DOCKER_IMAGE = "adele1304/tasklist-backend"
-        SONAR_TOKEN = credentials('sonarqube-token')
     }
 
     stages {
@@ -33,8 +32,8 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh 'npx sonar-scanner -Dsonar.login=$SONAR_TOKEN'
+                withSonarQubeEnv('sonarqube-server-1') {
+                    sh 'npx sonar-scanner'
                 }
             }
         }
