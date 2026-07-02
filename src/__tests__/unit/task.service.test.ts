@@ -57,6 +57,26 @@ describe("TaskService", () => {
 		});
 	});
 
+	describe("findById", () => {
+		it("should return the task when it exists", async () => {
+			(mockPrisma.task.findUnique as any).mockResolvedValue(mockTask);
+
+			const result = await taskService.findById(1);
+
+			expect(result).toEqual(mockTask);
+			expect(mockPrisma.task.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+		});
+
+		it("should return null when task does not exist", async () => {
+			(mockPrisma.task.findUnique as any).mockResolvedValue(null);
+
+			const result = await taskService.findById(999);
+
+			expect(result).toBeNull();
+			expect(mockPrisma.task.findUnique).toHaveBeenCalledWith({ where: { id: 999 } });
+		});
+	});
+
 	describe("create", () => {
 		it("should create and return a new task", async () => {
 			const input = { title: "New Task", description: "A new task" };
@@ -97,6 +117,14 @@ describe("TaskService", () => {
 	});
 
 	describe("remove", () => {
+		it("should throw an error when task does not exist", async () => {
+			(mockPrisma.task.findUnique as any).mockResolvedValue(null);
+
+			await expect(taskService.remove(999)).rejects.toThrow("Task not found");
+			expect(mockPrisma.task.findUnique).toHaveBeenCalledWith({ where: { id: 999 } });
+			expect(mockPrisma.task.delete).not.toHaveBeenCalled();
+		});
+
 		it("should delete and return the task when it exists", async () => {
 			(mockPrisma.task.findUnique as any).mockResolvedValue(mockTask);
 			(mockPrisma.task.delete as any).mockResolvedValue(mockTask);
