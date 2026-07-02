@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        DOCKER_IMAGE = "tonuser/tasklist-backend"
+DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials-adele')        
+DOCKER_IMAGE = "adele1304/tasklist-backend"
         SONAR_TOKEN = credentials('sonarqube-token')
     }
 
